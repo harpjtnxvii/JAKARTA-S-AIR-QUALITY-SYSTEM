@@ -1070,7 +1070,6 @@ def tampilkan_topbar():
                 <div class="brand-mark">☁️</div>
                 <div>
                     <div class="brand-title">Sistem Kualitas Udara Jakarta</div>
-                    <div class="brand-subtitle">Klasifikasi udara, rekomendasi aktivitas, dan edukasi polusi</div>
                 </div>
             </div>
             <div class="status-pill">Aplikasi berbasis Machine Learning</div>
