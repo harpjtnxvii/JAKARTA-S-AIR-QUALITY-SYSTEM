@@ -7,6 +7,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="Sistem Kualitas Udara Jakarta",
+    page_icon="☁️",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -52,34 +53,73 @@ INFO_POLUSI = [
         "label": "Gas Belerang (SO2)",
         "kolom": "SO2",
         "default": 15.0,
-        "penjelasan": "Gas yang sering berasal dari pembakaran bahan bakar tertentu.",
+        "penjelasan": "Gas dari pembakaran bahan bakar tertentu.",
     },
     {
         "label": "Gas Karbon (CO)",
         "kolom": "CO",
         "default": 12.0,
-        "penjelasan": "Gas yang sering muncul dari asap kendaraan dan pembakaran tidak sempurna.",
+        "penjelasan": "Gas dari asap kendaraan dan pembakaran tidak sempurna.",
     },
     {
         "label": "Ozon Permukaan (O3)",
         "kolom": "O3",
         "default": 30.0,
-        "penjelasan": "Polutan yang dapat terbentuk saat polusi bereaksi dengan panas matahari.",
+        "penjelasan": "Polutan yang terbentuk saat polusi bereaksi dengan panas matahari.",
     },
     {
         "label": "Gas Nitrogen (NO2)",
         "kolom": "NO2",
         "default": 22.0,
-        "penjelasan": "Gas yang sering berkaitan dengan asap kendaraan dan aktivitas perkotaan.",
+        "penjelasan": "Gas yang sering muncul dari asap kendaraan dan kegiatan perkotaan.",
     },
 ]
 
-PRESET_INPUT = {
+CONTOH_NILAI = {
     "Contoh Udara Baik": [32.0, 38.0, 18.0, 7.0, 18.0, 12.0],
     "Contoh Udara Sedang": [65.0, 78.0, 28.0, 13.0, 36.0, 22.0],
     "Contoh Udara Kurang Sehat": [120.0, 145.0, 40.0, 22.0, 58.0, 36.0],
-    "Input Manual": [45.0, 65.0, 15.0, 12.0, 30.0, 22.0],
+    "Isi Sendiri": [45.0, 65.0, 15.0, 12.0, 30.0, 22.0],
 }
+
+TAHAP_KERJA = [
+    {
+        "nomor": "01",
+        "judul": "Memahami Masalah",
+        "isi": "Masalah utama adalah data udara sering tampil sebagai angka, tetapi sulit dipahami oleh masyarakat.",
+        "hasil": "Tujuan sistem ditentukan, yaitu mengubah angka polutan menjadi informasi kualitas udara.",
+    },
+    {
+        "nomor": "02",
+        "judul": "Memahami Data",
+        "isi": "Data berisi tanggal, lokasi pengukuran, nilai polutan, dan kategori kualitas udara.",
+        "hasil": "Kolom penting dikenali, seperti PM10, PM2.5, SO2, CO, O3, NO2, dan kategori udara.",
+    },
+    {
+        "nomor": "03",
+        "judul": "Menyiapkan Data",
+        "isi": "Data dibersihkan, nilai kosong diperiksa, dan angka polutan disiapkan agar bisa diproses.",
+        "hasil": "Data siap digunakan untuk membuat model penentu kategori udara.",
+    },
+    {
+        "nomor": "04",
+        "judul": "Membuat Model",
+        "isi": "Sistem belajar dari data yang sudah memiliki kategori udara.",
+        "hasil": "Model dapat menerima enam angka polutan dan menghasilkan kategori udara.",
+    },
+    {
+        "nomor": "05",
+        "judul": "Menilai Hasil",
+        "isi": "Hasil model diperiksa untuk melihat apakah kategori yang diberikan sudah sesuai.",
+        "hasil": "Model dinilai dari ketepatan hasil dan perbandingan data latih serta data uji.",
+    },
+    {
+        "nomor": "06",
+        "judul": "Menerapkan Sistem",
+        "isi": "Model dimasukkan ke aplikasi agar bisa digunakan melalui halaman web.",
+        "hasil": "Pengguna dapat mengisi angka polutan dan membaca hasilnya secara langsung.",
+    },
+]
 
 
 def terapkan_css():
@@ -105,11 +145,10 @@ def terapkan_css():
         --buruk: #B55D42;
         --bayangan: 0 18px 44px rgba(67, 118, 108, 0.10), 0 4px 14px rgba(118, 69, 59, 0.07);
         --bayangan-tipis: 0 10px 26px rgba(67, 118, 108, 0.08);
-        --radius-xxl: 32px;
-        --radius-xl: 26px;
-        --radius-lg: 20px;
-        --radius-md: 16px;
-        --transisi: all 0.25s ease;
+        --radius-besar: 32px;
+        --radius-sedang: 22px;
+        --radius-kecil: 16px;
+        --gerak: all 0.25s ease;
     }
 
     html, body, .stApp {
@@ -134,7 +173,7 @@ def terapkan_css():
         display: none !important;
     }
 
-    h1, h2, h3, h4, .serif {
+    h1, h2, h3, h4, .huruf-judul {
         font-family: 'Playfair Display', serif !important;
         letter-spacing: -0.035em;
     }
@@ -143,7 +182,7 @@ def terapkan_css():
         word-wrap: break-word;
     }
 
-    .topbar {
+    .kepala-atas {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -151,16 +190,16 @@ def terapkan_css():
         margin-bottom: 18px;
     }
 
-    .brand {
+    .merek {
         display: flex;
         align-items: center;
         gap: 12px;
     }
 
-    .brand-mark {
-        width: 44px;
-        height: 44px;
-        border-radius: 16px;
+    .ikon-merek {
+        width: 46px;
+        height: 46px;
+        border-radius: 17px;
         display: grid;
         place-items: center;
         background: linear-gradient(135deg, var(--utama) 0%, var(--utama-gelap) 100%);
@@ -169,24 +208,24 @@ def terapkan_css():
         box-shadow: var(--bayangan-tipis);
     }
 
-    .brand-title {
+    .judul-merek {
         color: var(--cokelat);
         font-weight: 900;
-        font-size: 1.05rem;
+        font-size: 1.07rem;
         line-height: 1.2;
     }
 
-    .brand-subtitle {
+    .teks-merek {
         color: var(--teks-lembut);
         font-size: 0.86rem;
         line-height: 1.4;
         margin-top: 2px;
     }
 
-    .status-pill {
+    .label-status {
         padding: 10px 14px;
         border-radius: 999px;
-        background: rgba(255, 253, 247, 0.78);
+        background: rgba(255, 253, 247, 0.82);
         border: 1px solid var(--garis);
         color: var(--utama-gelap);
         font-size: 0.88rem;
@@ -195,27 +234,27 @@ def terapkan_css():
         white-space: nowrap;
     }
 
-    .hero {
+    .pahlawan {
         position: relative;
         overflow: hidden;
-        border-radius: var(--radius-xxl);
+        border-radius: var(--radius-besar);
         background:
             radial-gradient(circle at 88% 12%, rgba(248, 250, 229, 0.18), transparent 28%),
             linear-gradient(135deg, #43766C 0%, #345E56 48%, #294B45 100%);
         border: 1px solid rgba(255, 255, 255, 0.18);
         box-shadow: var(--bayangan);
-        padding: 38px;
+        padding: 40px;
         margin-bottom: 22px;
     }
 
-    .hero-grid {
+    .pahlawan-kisi {
         display: grid;
         grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.82fr);
         gap: 24px;
         align-items: stretch;
     }
 
-    .hero-badge {
+    .lencana-atas {
         display: inline-flex;
         align-items: center;
         gap: 9px;
@@ -231,28 +270,28 @@ def terapkan_css():
         margin-bottom: 18px;
     }
 
-    .hero-title {
+    .judul-pahlawan {
         color: #F8FAE5 !important;
-        font-size: clamp(2.15rem, 5vw, 4rem);
+        font-size: clamp(2.1rem, 5vw, 4rem);
         line-height: 1.02;
         margin: 0 0 16px 0;
-        max-width: 820px;
+        max-width: 840px;
     }
 
-    .hero-text {
+    .teks-pahlawan {
         color: rgba(248, 250, 229, 0.90);
         font-size: 1.04rem;
         line-height: 1.78;
         margin: 0;
-        max-width: 780px;
+        max-width: 800px;
     }
 
-    .hero-side {
+    .sisi-pahlawan {
         display: grid;
         gap: 14px;
     }
 
-    .hero-mini {
+    .kartu-pahlawan {
         background: rgba(255, 255, 255, 0.11);
         border: 1px solid rgba(255, 255, 255, 0.16);
         border-radius: 22px;
@@ -260,29 +299,29 @@ def terapkan_css():
         backdrop-filter: blur(8px);
     }
 
-    .hero-mini-label {
+    .judul-kartu-pahlawan {
         color: #F8FAE5;
-        font-size: 0.9rem;
+        font-size: 0.94rem;
         font-weight: 900;
         margin-bottom: 7px;
     }
 
-    .hero-mini-text {
+    .teks-kartu-pahlawan {
         color: rgba(248, 250, 229, 0.86);
         font-size: 0.94rem;
         line-height: 1.68;
         margin: 0;
     }
 
-    .nav-wrap {
+    .wadah-menu {
         margin-bottom: 22px;
     }
 
     div[data-testid="stRadio"] > div {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 12px;
-        background: rgba(255, 253, 247, 0.78);
+        background: rgba(255, 253, 247, 0.82);
         border: 1px solid var(--garis);
         border-radius: 24px;
         padding: 12px;
@@ -290,7 +329,7 @@ def terapkan_css():
     }
 
     div[data-testid="stRadio"] label {
-        min-height: 68px;
+        min-height: 66px;
         border-radius: 18px !important;
         background: #FFFEFB !important;
         border: 1px solid transparent !important;
@@ -298,7 +337,7 @@ def terapkan_css():
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        transition: var(--transisi);
+        transition: var(--gerak);
     }
 
     div[data-testid="stRadio"] label:hover {
@@ -315,7 +354,7 @@ def terapkan_css():
     div[data-testid="stRadio"] p {
         margin: 0 !important;
         color: var(--teks) !important;
-        font-size: 0.97rem !important;
+        font-size: 0.95rem !important;
         font-weight: 900 !important;
         text-align: center;
     }
@@ -326,31 +365,31 @@ def terapkan_css():
     }
 
     .panel {
-        background: rgba(255, 253, 247, 0.88);
+        background: rgba(255, 253, 247, 0.90);
         border: 1px solid var(--garis);
-        border-radius: var(--radius-xxl);
+        border-radius: var(--radius-besar);
         box-shadow: var(--bayangan);
         margin-bottom: 22px;
         overflow: hidden;
     }
 
-    .panel-pad {
-        padding: 26px;
+    .isi-panel {
+        padding: 28px;
     }
 
-    .panel-head {
+    .kepala-panel {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         gap: 18px;
-        padding: 26px 26px 0 26px;
+        padding: 28px 28px 0 28px;
     }
 
-    .panel-title-wrap {
-        max-width: 860px;
+    .bungkus-judul-panel {
+        max-width: 900px;
     }
 
-    .overline {
+    .teks-atas {
         color: var(--utama);
         font-size: 0.8rem;
         font-weight: 900;
@@ -359,23 +398,23 @@ def terapkan_css():
         margin-bottom: 9px;
     }
 
-    .panel-title {
+    .judul-panel {
         color: var(--cokelat) !important;
         font-size: clamp(1.48rem, 2.5vw, 2.25rem);
         line-height: 1.14;
         margin: 0 0 10px 0;
     }
 
-    .panel-subtitle {
+    .teks-panel {
         color: var(--teks-lembut);
         font-size: 1rem;
         line-height: 1.76;
         margin: 0;
     }
 
-    .mini-note {
+    .catatan-kecil {
         min-width: 260px;
-        max-width: 340px;
+        max-width: 350px;
         padding: 16px 18px;
         border-radius: 20px;
         background: var(--utama-muda);
@@ -386,72 +425,137 @@ def terapkan_css():
         font-weight: 700;
     }
 
-    .stats-grid {
+    .kisi-ringkasan {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 16px;
-        padding: 26px;
+        padding: 28px;
     }
 
-    .stat-card {
+    .kartu-ringkasan {
         background: linear-gradient(180deg, #FFFFFF 0%, #FBF9F4 100%);
         border: 1px solid var(--garis);
         border-radius: 22px;
-        padding: 19px;
-        min-height: 134px;
+        padding: 20px;
+        min-height: 150px;
     }
 
-    .stat-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 14px;
+    .angka-kecil {
+        width: 40px;
+        height: 40px;
+        border-radius: 15px;
         display: grid;
         place-items: center;
         background: var(--utama-muda);
         color: var(--utama-gelap);
-        font-size: 1.15rem;
+        font-size: 0.88rem;
+        font-weight: 900;
         margin-bottom: 12px;
     }
 
-    .stat-label {
+    .label-kartu {
         color: var(--teks-lembut);
         font-size: 0.86rem;
         font-weight: 800;
         margin-bottom: 8px;
     }
 
-    .stat-value {
+    .nilai-kartu {
         color: var(--cokelat);
-        font-size: 1.38rem;
+        font-size: 1.28rem;
         font-weight: 900;
-        line-height: 1.22;
+        line-height: 1.25;
         margin-bottom: 7px;
     }
 
-    .stat-desc {
+    .teks-kartu {
         color: var(--teks-lembut);
         font-size: 0.91rem;
         line-height: 1.62;
+        margin: 0;
     }
 
-    .info-grid {
+    .kisi-tahap {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 16px;
-        padding: 0 26px 26px 26px;
+        padding: 28px;
     }
 
-    .info-card {
+    .kartu-tahap {
+        position: relative;
+        background: #FFFEFB;
+        border: 1px solid var(--garis);
+        border-radius: 24px;
+        padding: 22px;
+        min-height: 260px;
+        overflow: hidden;
+    }
+
+    .kartu-tahap::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 6px;
+        background: linear-gradient(180deg, var(--utama), var(--aksen));
+    }
+
+    .nomor-tahap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 16px;
+        background: var(--utama-muda);
+        color: var(--utama-gelap);
+        font-weight: 900;
+        margin-bottom: 14px;
+    }
+
+    .judul-tahap {
+        color: var(--cokelat);
+        font-size: 1.05rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+    }
+
+    .isi-tahap {
+        color: var(--teks-lembut);
+        font-size: 0.94rem;
+        line-height: 1.7;
+        margin-bottom: 14px;
+    }
+
+    .hasil-tahap {
+        background: rgba(67, 118, 108, 0.08);
+        border: 1px solid rgba(67, 118, 108, 0.12);
+        border-radius: 16px;
+        padding: 12px;
+        color: var(--utama-gelap);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        font-weight: 700;
+    }
+
+    .kisi-info {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        padding: 28px;
+    }
+
+    .kartu-info {
         background: #FFFEFB;
         border: 1px solid var(--garis);
         border-radius: 22px;
-        padding: 19px;
-        min-height: 178px;
+        padding: 20px;
+        min-height: 185px;
     }
 
-    .info-number {
-        width: 36px;
-        height: 36px;
+    .nomor-info {
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
         display: inline-grid;
         place-items: center;
@@ -461,22 +565,22 @@ def terapkan_css():
         margin-bottom: 13px;
     }
 
-    .info-title {
+    .judul-info {
         color: var(--cokelat);
         font-size: 1rem;
         font-weight: 900;
         margin-bottom: 8px;
     }
 
-    .info-text {
+    .teks-info {
         color: var(--teks-lembut);
         line-height: 1.72;
         font-size: 0.94rem;
         margin: 0;
     }
 
-    .form-section {
-        padding: 26px;
+    .bagian-form {
+        padding: 28px;
     }
 
     div[data-testid="stForm"] {
@@ -486,43 +590,43 @@ def terapkan_css():
         box-shadow: none !important;
     }
 
-    .control-box {
+    .kotak-catatan {
         background: #FFFEFB;
         border: 1px solid var(--garis);
         border-radius: 22px;
         padding: 18px;
-        margin-bottom: 16px;
+        margin-bottom: 18px;
     }
 
-    .control-title {
+    .judul-catatan {
         color: var(--cokelat);
         font-weight: 900;
         font-size: 0.98rem;
         margin-bottom: 8px;
     }
 
-    .control-text {
+    .teks-catatan {
         color: var(--teks-lembut);
         font-size: 0.9rem;
         line-height: 1.65;
         margin: 0;
     }
 
-    .field-wrap {
+    .bungkus-kolom {
         background: #FFFEFB;
         border: 1px solid var(--garis);
         border-radius: 20px;
         padding: 15px 15px 8px 15px;
         height: 100%;
-        transition: var(--transisi);
+        transition: var(--gerak);
     }
 
-    .field-wrap:hover {
+    .bungkus-kolom:hover {
         border-color: rgba(67, 118, 108, 0.26);
         box-shadow: 0 10px 20px rgba(67, 118, 108, 0.06);
     }
 
-    .field-caption {
+    .keterangan-kolom {
         color: var(--teks-lembut);
         font-size: 0.86rem;
         line-height: 1.55;
@@ -557,21 +661,21 @@ def terapkan_css():
     }
 
     div[data-testid="stFormSubmitButton"] {
-        margin-top: 10px;
+        margin-top: 12px;
     }
 
     div[data-testid="stFormSubmitButton"] > button,
     button[kind="primary"] {
         width: 100% !important;
-        min-height: 56px !important;
-        border-radius: 17px !important;
+        min-height: 58px !important;
+        border-radius: 18px !important;
         border: none !important;
         background: linear-gradient(135deg, var(--utama) 0%, var(--utama-gelap) 100%) !important;
         color: white !important;
         font-weight: 900 !important;
         font-size: 1rem !important;
         box-shadow: 0 16px 24px rgba(67, 118, 108, 0.22) !important;
-        transition: var(--transisi) !important;
+        transition: var(--gerak) !important;
     }
 
     div[data-testid="stFormSubmitButton"] > button:hover,
@@ -580,14 +684,14 @@ def terapkan_css():
         filter: brightness(0.98);
     }
 
-    .result-grid {
+    .kisi-hasil {
         display: grid;
-        grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.35fr);
+        grid-template-columns: minmax(300px, 0.92fr) minmax(0, 1.32fr);
         gap: 18px;
-        padding: 0 26px 26px 26px;
+        padding: 0 28px 28px 28px;
     }
 
-    .result-card {
+    .kartu-hasil {
         background: #FFFEFB;
         border: 1px solid var(--garis);
         border-radius: 24px;
@@ -610,7 +714,7 @@ def terapkan_css():
         background: linear-gradient(180deg, rgba(181, 93, 66, 0.10) 0%, #FFFEFB 82%);
     }
 
-    .badge {
+    .lencana-hasil {
         display: inline-flex;
         align-items: center;
         padding: 7px 13px;
@@ -622,26 +726,26 @@ def terapkan_css():
         margin-bottom: 14px;
     }
 
-    .result-title {
+    .judul-hasil {
         color: var(--cokelat) !important;
         font-size: 1.72rem;
         line-height: 1.18;
         margin: 0 0 12px 0;
     }
 
-    .result-text {
+    .teks-hasil {
         color: var(--teks);
         line-height: 1.78;
         margin-bottom: 18px;
     }
 
-    .action-list {
+    .daftar-saran {
         display: grid;
         gap: 10px;
         margin-top: 12px;
     }
 
-    .action-item {
+    .isi-saran {
         display: flex;
         gap: 10px;
         align-items: flex-start;
@@ -653,70 +757,66 @@ def terapkan_css():
         line-height: 1.6;
     }
 
-    .highlight-grid {
+    .kisi-sorotan {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 14px;
         margin-top: 16px;
     }
 
-    .highlight-box {
+    .kotak-sorotan {
         background: #FFFFFF;
         border: 1px solid var(--garis);
         border-radius: 18px;
         padding: 16px;
     }
 
-    .highlight-label {
+    .label-sorotan {
         color: var(--teks-lembut);
         font-size: 0.84rem;
         font-weight: 800;
         margin-bottom: 8px;
     }
 
-    .highlight-value {
+    .nilai-sorotan {
         color: var(--cokelat);
         font-size: 1.18rem;
         line-height: 1.35;
         font-weight: 900;
     }
 
-    .recommendation-grid {
+    .kisi-anjuran {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 14px;
         margin-top: 16px;
     }
 
-    .recommendation-card {
+    .kartu-anjuran {
         background: rgba(255, 255, 255, 0.78);
         border: 1px solid var(--garis);
         border-radius: 18px;
         padding: 16px;
     }
 
-    .recommendation-title {
+    .judul-anjuran {
         color: var(--cokelat);
         font-weight: 900;
         margin-bottom: 8px;
     }
 
-    .recommendation-text {
+    .teks-anjuran {
         color: var(--teks-lembut);
         font-size: 0.92rem;
         line-height: 1.68;
         margin: 0;
     }
 
-    .dataframe-wrap {
-        margin-top: 12px;
-    }
-
-    .foot-note {
+    .catatan-bawah {
         color: var(--teks-lembut);
         font-size: 0.92rem;
         line-height: 1.72;
-        padding: 18px 26px 26px 26px;
+        padding: 18px 28px 28px 28px;
     }
 
     [data-testid="stPlotlyChart"],
@@ -739,33 +839,42 @@ def terapkan_css():
             padding-right: 28px;
         }
 
-        .stats-grid {
+        .kisi-ringkasan {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .kisi-tahap {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
     @media (max-width: 1080px) {
-        .hero-grid,
-        .result-grid,
-        .info-grid {
+        .pahlawan-kisi,
+        .kisi-hasil,
+        .kisi-info {
             grid-template-columns: 1fr;
         }
 
-        .panel-head {
+        .kepala-panel {
             flex-direction: column;
         }
 
-        .mini-note {
+        .catatan-kecil {
             max-width: none;
             width: 100%;
+        }
+
+        div[data-testid="stRadio"] > div {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
     @media (max-width: 920px) {
         div[data-testid="stRadio"] > div,
-        .highlight-grid,
-        .recommendation-grid,
-        .stats-grid {
+        .kisi-sorotan,
+        .kisi-anjuran,
+        .kisi-ringkasan,
+        .kisi-tahap {
             grid-template-columns: 1fr;
         }
 
@@ -773,12 +882,12 @@ def terapkan_css():
             min-height: 56px;
         }
 
-        .topbar {
+        .kepala-atas {
             align-items: flex-start;
             flex-direction: column;
         }
 
-        .status-pill {
+        .label-status {
             white-space: normal;
         }
     }
@@ -788,86 +897,89 @@ def terapkan_css():
             padding: 18px 16px 36px 16px;
         }
 
-        .hero {
+        .pahlawan {
             padding: 24px 18px;
             border-radius: 24px;
         }
 
-        .hero-title {
+        .judul-pahlawan {
             font-size: 2rem;
         }
 
-        .hero-text,
-        .panel-subtitle,
-        .info-text,
-        .field-caption,
-        .result-text,
-        .recommendation-text,
-        .control-text {
+        .teks-pahlawan,
+        .teks-panel,
+        .teks-info,
+        .keterangan-kolom,
+        .teks-hasil,
+        .teks-anjuran,
+        .teks-catatan {
             font-size: 0.94rem;
         }
 
         .panel,
-        .result-card,
-        .stat-card,
-        .info-card,
-        .highlight-box,
-        .field-wrap,
-        .control-box,
-        .recommendation-card {
+        .kartu-hasil,
+        .kartu-ringkasan,
+        .kartu-info,
+        .kotak-sorotan,
+        .bungkus-kolom,
+        .kotak-catatan,
+        .kartu-anjuran,
+        .kartu-tahap {
             border-radius: 20px;
         }
 
-        .panel-head,
-        .panel-pad,
-        .form-section,
-        .stats-grid,
-        .result-grid,
-        .info-grid,
-        .foot-note {
+        .kepala-panel,
+        .isi-panel,
+        .bagian-form,
+        .kisi-ringkasan,
+        .kisi-hasil,
+        .kisi-info,
+        .kisi-tahap,
+        .catatan-bawah {
             padding-left: 16px;
             padding-right: 16px;
         }
     }
 
     @media (max-width: 560px) {
-        .brand-mark {
+        .ikon-merek {
             width: 40px;
             height: 40px;
             border-radius: 14px;
         }
 
-        .hero-badge {
+        .lencana-atas {
             font-size: 0.72rem;
             line-height: 1.4;
             align-items: flex-start;
         }
 
-        .hero-title {
+        .judul-pahlawan {
             font-size: 1.66rem;
         }
 
-        .panel-title {
+        .judul-panel {
             font-size: 1.34rem;
         }
 
-        .result-title {
+        .judul-hasil {
             font-size: 1.30rem;
         }
 
-        .stat-value,
-        .highlight-value {
+        .nilai-kartu,
+        .nilai-sorotan {
             font-size: 1.08rem;
         }
 
-        .panel-head {
+        .kepala-panel {
             padding-top: 20px;
         }
 
-        .stats-grid,
-        .form-section,
-        .result-grid,
-        .info-grid {
+        .kisi-ringkasan,
+        .bagian-form,
+        .kisi-hasil,
+        .kisi-info,
+        .kisi-tahap {
             gap: 12px;
         }
     }
@@ -878,25 +990,26 @@ def terapkan_css():
             padding-right: 12px;
         }
 
-        .hero {
+        .pahlawan {
             padding: 20px 14px;
         }
 
-        .hero-title {
+        .judul-pahlawan {
             font-size: 1.48rem;
         }
 
-        .hero-mini,
-        .stat-card,
-        .info-card,
-        .result-card,
-        .control-box,
-        .field-wrap,
-        .recommendation-card {
+        .kartu-pahlawan,
+        .kartu-ringkasan,
+        .kartu-info,
+        .kartu-hasil,
+        .kotak-catatan,
+        .bungkus-kolom,
+        .kartu-anjuran,
+        .kartu-tahap {
             padding: 14px;
         }
 
-        .action-item {
+        .isi-saran {
             padding: 10px 12px;
         }
     }
@@ -905,8 +1018,8 @@ def terapkan_css():
     st.markdown(textwrap.dedent(css), unsafe_allow_html=True)
 
 
-def ambil_preset(nama_preset):
-    return PRESET_INPUT.get(nama_preset, PRESET_INPUT["Input Manual"])
+def ambil_contoh_nilai(nama):
+    return CONTOH_NILAI.get(nama, CONTOH_NILAI["Isi Sendiri"])
 
 
 def buat_dataframe_input(nilai_input):
@@ -914,13 +1027,12 @@ def buat_dataframe_input(nilai_input):
 
 
 def buat_dataframe_grafik(nilai_input):
-    df = pd.DataFrame(
+    return pd.DataFrame(
         {
             "Jenis Polutan": ["PM10", "PM2.5", "SO2", "CO", "O3", "NO2"],
             "Nilai": nilai_input,
         }
-    )
-    return df.sort_values("Nilai", ascending=True)
+    ).sort_values("Nilai", ascending=True)
 
 
 def cari_zat_tertinggi(nilai_input):
@@ -935,6 +1047,17 @@ def normalisasi_kategori(kategori):
     return kategori
 
 
+def ubah_nama_kategori(kategori):
+    kategori = normalisasi_kategori(kategori)
+    if kategori == "GOOD":
+        return "Baik"
+    if kategori == "MEDIUM":
+        return "Sedang"
+    if kategori == "UNHEALTHY":
+        return "Kurang Sehat"
+    return "Sedang"
+
+
 def ambil_ringkasan_status(kategori):
     kategori = normalisasi_kategori(kategori)
 
@@ -944,12 +1067,12 @@ def ambil_ringkasan_status(kategori):
             "kelas": "baik",
             "badge": "Aman",
             "saran": (
-                "Kondisi udara tergolong baik. Aktivitas harian masih dapat dilakukan dengan nyaman. "
-                "Pengguna tetap disarankan menjaga kebersihan lingkungan dan memantau kondisi jika beraktivitas lama di luar."
+                "Kondisi udara tergolong baik. Kegiatan harian masih dapat dilakukan dengan nyaman. "
+                "Pengguna tetap disarankan menjaga kebersihan lingkungan dan memantau kondisi jika berada lama di luar ruangan."
             ),
             "aksi": [
-                "Aktivitas luar ruangan dapat dilakukan seperti biasa.",
-                "Ventilasi rumah dapat dibuka agar sirkulasi udara tetap baik.",
+                "Kegiatan luar ruangan dapat dilakukan seperti biasa.",
+                "Ventilasi rumah dapat dibuka agar udara segar masuk.",
                 "Tetap perhatikan kondisi tubuh jika sensitif terhadap debu.",
             ],
         },
@@ -959,12 +1082,12 @@ def ambil_ringkasan_status(kategori):
             "badge": "Waspada",
             "saran": (
                 "Udara masih dapat diterima, tetapi kelompok sensitif sebaiknya mulai berhati-hati. "
-                "Aktivitas luar ruangan tetap dapat dilakukan, namun tidak disarankan terlalu lama."
+                "Kegiatan luar ruangan masih bisa dilakukan, namun jangan terlalu lama."
             ),
             "aksi": [
                 "Kurangi olahraga berat di luar ruangan.",
                 "Gunakan masker saat berada di jalan ramai.",
-                "Kelompok sensitif disarankan lebih banyak beraktivitas di dalam ruangan.",
+                "Kelompok sensitif lebih aman berada di dalam ruangan.",
             ],
         },
         "UNHEALTHY": {
@@ -973,12 +1096,12 @@ def ambil_ringkasan_status(kategori):
             "badge": "Perlu Perlindungan",
             "saran": (
                 "Kualitas udara tergolong kurang sehat dan dapat mengganggu pernapasan. "
-                "Aktivitas luar ruangan sebaiknya dibatasi, terutama untuk anak-anak, lansia, dan pengguna dengan gangguan pernapasan."
+                "Kegiatan luar ruangan sebaiknya dibatasi, terutama untuk anak-anak, lansia, dan orang dengan gangguan pernapasan."
             ),
             "aksi": [
-                "Tunda aktivitas luar ruangan yang tidak mendesak.",
-                "Gunakan masker dengan filtrasi baik jika harus keluar.",
-                "Tutup jendela jika udara luar terasa lebih kotor dari dalam ruangan.",
+                "Tunda kegiatan luar ruangan yang tidak mendesak.",
+                "Gunakan masker dengan penyaring baik jika harus keluar.",
+                "Tutup jendela jika udara luar terasa lebih kotor.",
             ],
         },
     }
@@ -986,54 +1109,54 @@ def ambil_ringkasan_status(kategori):
     return data.get(kategori, data["MEDIUM"])
 
 
-def ambil_rekomendasi_tambahan(kategori, tipe_pengguna, aktivitas, durasi, waktu):
+def ambil_anjuran_tambahan(kategori, tipe_pengguna, aktivitas, durasi, waktu):
     kategori = normalisasi_kategori(kategori)
 
     masker = "Masker tidak wajib, tetapi boleh digunakan jika berada di area padat kendaraan."
-    aktivitas_saran = "Aktivitas dapat dilakukan secara normal."
+    aktivitas_saran = "Kegiatan dapat dilakukan secara normal."
     perlindungan = "Bawa air minum dan perhatikan kondisi tubuh."
-    sunscreen = "Sunscreen disarankan jika aktivitas dilakukan di luar ruangan pada siang hari."
+    tabir_surya = "Tabir surya disarankan jika kegiatan dilakukan di luar ruangan pada siang hari."
 
     if kategori == "MEDIUM":
         masker = "Gunakan masker jika berada di jalan ramai atau area berdebu."
-        aktivitas_saran = "Kurangi aktivitas luar ruangan yang terlalu lama, terutama untuk kelompok sensitif."
+        aktivitas_saran = "Kurangi kegiatan luar ruangan yang terlalu lama, terutama untuk kelompok sensitif."
         perlindungan = "Pilih rute yang lebih teduh dan kurangi paparan asap kendaraan."
 
     if kategori == "UNHEALTHY":
-        masker = "Gunakan masker dengan filtrasi baik jika harus keluar rumah."
-        aktivitas_saran = "Hindari aktivitas berat di luar ruangan dan batasi durasi keluar."
+        masker = "Gunakan masker dengan penyaring baik jika harus keluar rumah."
+        aktivitas_saran = "Hindari kegiatan berat di luar ruangan dan batasi lama berada di luar."
         perlindungan = "Utamakan berada di dalam ruangan, tutup jendela, dan hindari area padat kendaraan."
 
     if tipe_pengguna in ["Anak-anak", "Lansia", "Gangguan pernapasan"]:
-        aktivitas_saran = aktivitas_saran + " Kelompok sensitif disarankan lebih berhati-hati."
-        masker = masker + " Pemakaian masker lebih disarankan untuk kelompok ini."
+        aktivitas_saran += " Kelompok sensitif perlu lebih berhati-hati."
+        masker += " Pemakaian masker lebih disarankan untuk kelompok ini."
 
     if aktivitas == "Olahraga luar ruangan":
         if kategori == "GOOD":
-            aktivitas_saran = "Olahraga luar ruangan masih dapat dilakukan, tetapi tetap pilih area yang tidak terlalu padat kendaraan."
+            aktivitas_saran = "Olahraga luar ruangan masih dapat dilakukan, tetapi pilih tempat yang tidak terlalu padat kendaraan."
         elif kategori == "MEDIUM":
-            aktivitas_saran = "Olahraga berat sebaiknya dikurangi. Pilih olahraga ringan dan durasi lebih singkat."
+            aktivitas_saran = "Olahraga berat sebaiknya dikurangi. Pilih olahraga ringan dengan waktu lebih singkat."
         else:
-            aktivitas_saran = "Olahraga luar ruangan sebaiknya ditunda sampai kondisi udara lebih baik."
+            aktivitas_saran = "Olahraga luar ruangan sebaiknya ditunda sampai udara lebih baik."
 
-    if aktivitas == "Perjalanan kerja/sekolah":
-        perlindungan = perlindungan + " Pilih rute yang lebih sedikit paparan asap kendaraan jika memungkinkan."
+    if aktivitas == "Perjalanan kerja atau sekolah":
+        perlindungan += " Pilih rute yang lebih sedikit asap kendaraan jika memungkinkan."
 
     if durasi == "Lebih dari 1 jam":
-        perlindungan = perlindungan + " Karena durasi cukup lama, siapkan masker dan kurangi paparan langsung."
+        perlindungan += " Karena waktunya cukup lama, siapkan masker dan kurangi paparan langsung."
 
     if waktu == "Siang":
-        sunscreen = "Jika keluar pada siang hari, gunakan sunscreen SPF 30 atau lebih, topi, dan pakaian yang nyaman."
+        tabir_surya = "Jika keluar pada siang hari, gunakan tabir surya, topi, dan pakaian yang nyaman."
     elif aktivitas == "Di dalam ruangan":
-        sunscreen = "Sunscreen tidak menjadi prioritas jika aktivitas sepenuhnya di dalam ruangan."
+        tabir_surya = "Tabir surya tidak menjadi hal utama jika kegiatan sepenuhnya di dalam ruangan."
     else:
-        sunscreen = "Sunscreen dapat dipertimbangkan jika aktivitas luar ruangan berlangsung cukup lama."
+        tabir_surya = "Tabir surya dapat dipertimbangkan jika kegiatan luar ruangan berlangsung cukup lama."
 
     return {
         "Masker": masker,
-        "Aktivitas": aktivitas_saran,
-        "Perlindungan": perlindungan,
-        "Sunscreen": sunscreen,
+        "Kegiatan": aktivitas_saran,
+        "Perlindungan diri": perlindungan,
+        "Tabir surya": tabir_surya,
     }
 
 
@@ -1062,48 +1185,48 @@ def buat_grafik(nilai_input):
     return fig
 
 
-def tampilkan_topbar():
+def tampilkan_kepala_atas():
     st.markdown(
         """
-        <div class="topbar">
-            <div class="brand">
-                <div class="brand-mark">☁️</div>
+        <div class="kepala-atas">
+            <div class="merek">
+                <div class="ikon-merek">☁️</div>
                 <div>
-                    <div class="brand-title">Sistem Kualitas Udara Jakarta</div>
+                    <div class="judul-merek">Sistem Kualitas Udara Jakarta</div>
+                    <div class="teks-merek">Alur kerja data, klasifikasi udara, dan anjuran kegiatan</div>
                 </div>
             </div>
-            <div class="status-pill">Aplikasi berbasis Machine Learning</div>
+            <div class="label-status">Aplikasi penelitian berbasis data</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
 
-def tampilkan_hero():
+def tampilkan_pahlawan():
     st.markdown(
         """
-        <section class="hero">
-            <div class="hero-grid">
+        <section class="pahlawan">
+            <div class="pahlawan-kisi">
                 <div>
-                    <div class="hero-badge">SISTEM EDUKASI DAN SIMULASI KUALITAS UDARA</div>
-                    <h1 class="hero-title">Cek kualitas udara Jakarta dengan cara yang lebih mudah dipahami</h1>
-                    <p class="hero-text">
-                        Aplikasi ini mengubah angka polutan menjadi kategori kualitas udara, menampilkan zat yang paling dominan,
-                        lalu memberikan rekomendasi aktivitas dan perlindungan diri. Sistem ini dapat digunakan oleh publik
-                        sebagai media edukasi, simulasi, dan demonstrasi penerapan machine learning.
+                    <div class="lencana-atas">ALUR KERJA DATA UNTUK KUALITAS UDARA</div>
+                    <h1 class="judul-pahlawan huruf-judul">Cek kualitas udara Jakarta dengan alur penelitian yang jelas</h1>
+                    <p class="teks-pahlawan">
+                        Aplikasi ini menerima angka polutan, mengolahnya dengan model yang sudah dibuat dari data,
+                        lalu menampilkan kategori udara, polutan paling tinggi, grafik, dan anjuran tindakan yang mudah dipahami.
                     </p>
                 </div>
-                <div class="hero-side">
-                    <div class="hero-mini">
-                        <div class="hero-mini-label">Untuk siapa aplikasi ini?</div>
-                        <p class="hero-mini-text">
-                            Mahasiswa, peneliti, komunitas lingkungan, dosen, dan masyarakat umum yang ingin memahami simulasi kualitas udara.
+                <div class="sisi-pahlawan">
+                    <div class="kartu-pahlawan">
+                        <div class="judul-kartu-pahlawan">Arah penelitian</div>
+                        <p class="teks-kartu-pahlawan">
+                            Sistem mengikuti alur CRISP-DM, yaitu alur kerja data dari memahami masalah sampai menerapkan hasil ke aplikasi.
                         </p>
                     </div>
-                    <div class="hero-mini">
-                        <div class="hero-mini-label">Sumber input angka</div>
-                        <p class="hero-mini-text">
-                            Nilai dapat berasal dari dataset, alat sensor, stasiun pemantau, laporan kualitas udara, atau preset simulasi.
+                    <div class="kartu-pahlawan">
+                        <div class="judul-kartu-pahlawan">Untuk siapa?</div>
+                        <p class="teks-kartu-pahlawan">
+                            Mahasiswa, dosen, peneliti, komunitas lingkungan, dan masyarakat umum yang ingin memahami simulasi kualitas udara.
                         </p>
                     </div>
                 </div>
@@ -1118,95 +1241,82 @@ def tampilkan_ringkasan():
     st.markdown(
         """
         <section class="panel">
-            <div class="panel-head">
-                <div class="panel-title-wrap">
-                    <div class="overline">Ringkasan Proyek</div>
-                    <h2 class="panel-title">Sistem klasifikasi udara dengan alur input, proses, dan output</h2>
-                    <p class="panel-subtitle">
-                        Fokus utama aplikasi ini adalah membantu pengguna memahami kondisi udara dari data polutan.
-                        Sistem tidak diklaim sebagai alat resmi pengukuran, melainkan sebagai prototype klasifikasi dan edukasi kualitas udara.
+            <div class="kepala-panel">
+                <div class="bungkus-judul-panel">
+                    <div class="teks-atas">Ringkasan Sistem</div>
+                    <h2 class="judul-panel huruf-judul">Masukan, proses, hasil, dan manfaat</h2>
+                    <p class="teks-panel">
+                        Sistem ini tidak hanya menampilkan angka. Sistem membantu mengubah data udara menjadi penjelasan
+                        yang lebih jelas agar pengguna dapat memahami kondisi udara dan tindakan yang perlu dilakukan.
                     </p>
                 </div>
             </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">01</div>
-                    <div class="stat-label">Input</div>
-                    <div class="stat-value">6 polutan</div>
-                    <div class="stat-desc">PM10, PM2.5, SO2, CO, O3, dan NO2 sebagai fitur utama model.</div>
+            <div class="kisi-ringkasan">
+                <div class="kartu-ringkasan">
+                    <div class="angka-kecil">01</div>
+                    <div class="label-kartu">Masukan</div>
+                    <div class="nilai-kartu">6 polutan</div>
+                    <p class="teks-kartu">PM10, PM2.5, SO2, CO, O3, dan NO2 menjadi nilai utama yang dimasukkan pengguna.</p>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">02</div>
-                    <div class="stat-label">Proses</div>
-                    <div class="stat-value">Machine Learning</div>
-                    <div class="stat-desc">Model membaca pola input dan mengklasifikasikan kualitas udara.</div>
+                <div class="kartu-ringkasan">
+                    <div class="angka-kecil">02</div>
+                    <div class="label-kartu">Proses</div>
+                    <div class="nilai-kartu">Model data</div>
+                    <p class="teks-kartu">Model membaca pola angka polutan untuk menentukan kondisi udara.</p>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">03</div>
-                    <div class="stat-label">Output</div>
-                    <div class="stat-value">3 kategori</div>
-                    <div class="stat-desc">GOOD, MEDIUM, dan UNHEALTHY sebagai hasil utama klasifikasi.</div>
+                <div class="kartu-ringkasan">
+                    <div class="angka-kecil">03</div>
+                    <div class="label-kartu">Hasil</div>
+                    <div class="nilai-kartu">3 kategori</div>
+                    <p class="teks-kartu">Hasil utama berupa Baik, Sedang, atau Kurang Sehat.</p>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">04</div>
-                    <div class="stat-label">Tambahan</div>
-                    <div class="stat-value">Rekomendasi</div>
-                    <div class="stat-desc">Saran aktivitas, masker, perlindungan diri, dan sunscreen untuk aktivitas luar ruangan.</div>
+                <div class="kartu-ringkasan">
+                    <div class="angka-kecil">04</div>
+                    <div class="label-kartu">Manfaat</div>
+                    <div class="nilai-kartu">Anjuran</div>
+                    <p class="teks-kartu">Sistem memberi saran kegiatan, masker, perlindungan diri, dan tabir surya jika diperlukan.</p>
                 </div>
             </div>
         </section>
         """,
         unsafe_allow_html=True,
     )
-
-
-def render_field(item, value, preset_key):
-    st.markdown('<div class="field-wrap">', unsafe_allow_html=True)
-    nilai = st.number_input(
-        item["label"],
-        min_value=0.0,
-        value=float(value),
-        step=1.0,
-        key=f"input_{preset_key}_{item['kolom']}",
-    )
-    st.markdown(f'<div class="field-caption">{item["penjelasan"]}</div>', unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-    return nilai
 
 
 def tampilkan_beranda():
     st.markdown(
         """
         <section class="panel">
-            <div class="panel-head">
-                <div class="panel-title-wrap">
-                    <div class="overline">Halaman Awal</div>
-                    <h2 class="panel-title">Apa nilai utama dari aplikasi ini?</h2>
-                    <p class="panel-subtitle">
-                        Aplikasi ini dibuat agar data polusi tidak hanya tampil sebagai angka,
-                        tetapi berubah menjadi informasi yang lebih mudah dibaca dan digunakan.
+            <div class="kepala-panel">
+                <div class="bungkus-judul-panel">
+                    <div class="teks-atas">Halaman Awal</div>
+                    <h2 class="judul-panel huruf-judul">Apa inti dari aplikasi ini?</h2>
+                    <p class="teks-panel">
+                        Inti aplikasi ini adalah membantu pengguna memahami kualitas udara Jakarta.
+                        Pengguna memasukkan angka polutan, lalu sistem menampilkan kondisi udara dan anjuran yang mudah dipahami.
                     </p>
                 </div>
             </div>
-            <div class="info-grid">
-                <div class="info-card">
-                    <div class="info-number">1</div>
-                    <div class="info-title">Media edukasi publik</div>
-                    <p class="info-text">Masyarakat dapat memahami hubungan antara angka polutan dan kondisi udara.</p>
+            <div class="kisi-info">
+                <div class="kartu-info">
+                    <div class="nomor-info">1</div>
+                    <div class="judul-info">Media edukasi</div>
+                    <p class="teks-info">Pengguna dapat memahami hubungan antara angka polutan dan kondisi udara.</p>
                 </div>
-                <div class="info-card">
-                    <div class="info-number">2</div>
-                    <div class="info-title">Simulasi data udara</div>
-                    <p class="info-text">Pengguna dapat mencoba preset atau memasukkan angka dari data yang dimiliki.</p>
+                <div class="kartu-info">
+                    <div class="nomor-info">2</div>
+                    <div class="judul-info">Simulasi data udara</div>
+                    <p class="teks-info">Pengguna dapat mencoba contoh nilai atau memasukkan angka dari data yang dimiliki.</p>
                 </div>
-                <div class="info-card">
-                    <div class="info-number">3</div>
-                    <div class="info-title">Rekomendasi praktis</div>
-                    <p class="info-text">Sistem memberi saran aktivitas, masker, dan perlindungan diri sesuai hasil klasifikasi.</p>
+                <div class="kartu-info">
+                    <div class="nomor-info">3</div>
+                    <div class="judul-info">Anjuran praktis</div>
+                    <p class="teks-info">Sistem memberi saran kegiatan dan perlindungan diri sesuai hasil kategori udara.</p>
                 </div>
             </div>
-            <div class="foot-note">
-                Aplikasi ini paling tepat diposisikan sebagai aplikasis para penelitian terapan, bukan alat resmi pengganti pemantauan kualitas udara pemerintah.
+            <div class="catatan-bawah">
+                Aplikasi ini paling tepat diposisikan sebagai rancangan awal penelitian terapan,
+                bukan alat resmi pengganti pemantauan kualitas udara pemerintah.
             </div>
         </section>
         """,
@@ -1214,17 +1324,66 @@ def tampilkan_beranda():
     )
 
 
+def tampilkan_alur_kerja_data():
+    kartu = ""
+
+    for tahap in TAHAP_KERJA:
+        kartu += f"""
+        <div class="kartu-tahap">
+            <div class="nomor-tahap">{tahap["nomor"]}</div>
+            <div class="judul-tahap">{tahap["judul"]}</div>
+            <div class="isi-tahap">{tahap["isi"]}</div>
+            <div class="hasil-tahap">{tahap["hasil"]}</div>
+        </div>
+        """
+
+    st.markdown(
+        f"""
+        <section class="panel">
+            <div class="kepala-panel">
+                <div class="bungkus-judul-panel">
+                    <div class="teks-atas">CRISP-DM</div>
+                    <h2 class="judul-panel huruf-judul">Alur kerja data pada penelitian ini</h2>
+                    <p class="teks-panel">
+                        CRISP-DM digunakan agar penelitian berjalan rapi. Tahapannya dimulai dari memahami masalah,
+                        memahami data, menyiapkan data, membuat model, menilai hasil, sampai menerapkan sistem ke aplikasi.
+                    </p>
+                </div>
+            </div>
+            <div class="kisi-tahap">
+                {kartu}
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_field(item, value, key_prefix):
+    st.markdown('<div class="bungkus-kolom">', unsafe_allow_html=True)
+    nilai = st.number_input(
+        item["label"],
+        min_value=0.0,
+        value=float(value),
+        step=1.0,
+        key=f"{key_prefix}_{item['kolom']}",
+    )
+    st.markdown(f'<div class="keterangan-kolom">{item["penjelasan"]}</div>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+    return nilai
+
+
 def tampilkan_form_cek_udara():
     st.markdown(
         """
         <section class="panel">
-            <div class="panel-head">
-                <div class="panel-title-wrap">
-                    <div class="overline">Bagian Utama</div>
-                    <h2 class="panel-title">Cek kualitas udara berdasarkan input polutan</h2>
-                    <p class="panel-subtitle">
-                        Gunakan input manual jika memiliki data dari sensor,
-                        dataset, laporan kualitas udara, atau hasil pengukuran lain.
+            <div class="kepala-panel">
+                <div class="bungkus-judul-panel">
+                    <div class="teks-atas">Tahap Penerapan</div>
+                    <h2 class="judul-panel huruf-judul">Cek kualitas udara berdasarkan angka polutan</h2>
+                    <p class="teks-panel">
+                        Pilih contoh nilai jika hanya ingin mencoba. Gunakan isi sendiri jika memiliki data dari alat ukur,
+                        kumpulan data, laporan kualitas udara, atau hasil pengukuran lain.
                     </p>
                 </div>
             </div>
@@ -1234,16 +1393,16 @@ def tampilkan_form_cek_udara():
     )
 
     with st.form("form_kualitas_udara"):
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
+        st.markdown('<div class="bagian-form">', unsafe_allow_html=True)
 
         col_a, col_b, col_c, col_d = st.columns(4, gap="medium")
 
         with col_a:
-            preset = st.selectbox(
-                "Mode input",
-                list(PRESET_INPUT.keys()),
+            contoh = st.selectbox(
+                "Pilihan nilai",
+                list(CONTOH_NILAI.keys()),
                 index=1,
-                key="preset_input",
+                key="pilihan_nilai",
             )
 
         with col_b:
@@ -1255,51 +1414,51 @@ def tampilkan_form_cek_udara():
 
         with col_c:
             aktivitas = st.selectbox(
-                "Rencana aktivitas",
-                ["Di dalam ruangan", "Perjalanan kerja/sekolah", "Olahraga luar ruangan", "Aktivitas luar ruangan ringan"],
+                "Rencana kegiatan",
+                ["Di dalam ruangan", "Perjalanan kerja atau sekolah", "Olahraga luar ruangan", "Kegiatan luar ruangan ringan"],
                 key="aktivitas",
             )
 
         with col_d:
             durasi = st.selectbox(
-                "Durasi aktivitas",
+                "Lama kegiatan",
                 ["Kurang dari 30 menit", "30 sampai 60 menit", "Lebih dari 1 jam"],
                 key="durasi",
             )
 
         waktu = st.selectbox(
-            "Waktu aktivitas",
-            ["Pagi", "Siang", "Sore/Malam"],
-            key="waktu_aktivitas",
+            "Waktu kegiatan",
+            ["Pagi", "Siang", "Sore atau Malam"],
+            key="waktu_kegiatan",
         )
 
         st.markdown(
             """
-            <div class="control-box">
-                <div class="control-title">Catatan input</div>
-                <p class="control-text">
-                    Sistem menerima angka polutan sebagai masukan. Jika pengguna umum tidak memiliki data asli,
-                    preset dapat digunakan sebagai contoh simulasi agar alur input, proses, dan output tetap mudah dipahami.
+            <div class="kotak-catatan">
+                <div class="judul-catatan">Catatan masukan</div>
+                <p class="teks-catatan">
+                    Sistem menerima angka polutan sebagai masukan. Jika pengguna belum memiliki data asli,
+                    contoh nilai dapat digunakan agar alur masukan, proses, dan hasil tetap mudah dipahami.
                 </p>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        nilai_preset = ambil_preset(preset)
-        preset_key = preset.lower().replace(" ", "_")
+        nilai_awal = ambil_contoh_nilai(contoh)
+        key_prefix = contoh.lower().replace(" ", "_")
 
         col1, col2 = st.columns(2, gap="large")
 
         with col1:
-            nilai_pm10 = render_field(INFO_POLUSI[0], nilai_preset[0], preset_key)
-            nilai_pm25 = render_field(INFO_POLUSI[1], nilai_preset[1], preset_key)
-            nilai_so2 = render_field(INFO_POLUSI[2], nilai_preset[2], preset_key)
+            nilai_pm10 = render_field(INFO_POLUSI[0], nilai_awal[0], key_prefix)
+            nilai_pm25 = render_field(INFO_POLUSI[1], nilai_awal[1], key_prefix)
+            nilai_so2 = render_field(INFO_POLUSI[2], nilai_awal[2], key_prefix)
 
         with col2:
-            nilai_co = render_field(INFO_POLUSI[3], nilai_preset[3], preset_key)
-            nilai_o3 = render_field(INFO_POLUSI[4], nilai_preset[4], preset_key)
-            nilai_no2 = render_field(INFO_POLUSI[5], nilai_preset[5], preset_key)
+            nilai_co = render_field(INFO_POLUSI[3], nilai_awal[3], key_prefix)
+            nilai_o3 = render_field(INFO_POLUSI[4], nilai_awal[4], key_prefix)
+            nilai_no2 = render_field(INFO_POLUSI[5], nilai_awal[5], key_prefix)
 
         tombol = st.form_submit_button("Proses dan tampilkan hasil", type="primary", width="stretch")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -1317,68 +1476,69 @@ def tampilkan_hasil_analisis(nilai_input, tipe_pengguna, aktivitas, durasi, wakt
             status = ambil_ringkasan_status(kategori)
             zat_nama, zat_nilai = cari_zat_tertinggi(nilai_input)
             grafik = buat_grafik(nilai_input)
-            rekomendasi = ambil_rekomendasi_tambahan(kategori, tipe_pengguna, aktivitas, durasi, waktu)
+            anjuran = ambil_anjuran_tambahan(kategori, tipe_pengguna, aktivitas, durasi, waktu)
+            kategori_tampil = ubah_nama_kategori(kategori)
 
             st.markdown(
                 f"""
                 <section class="panel">
-                    <div class="panel-head">
-                        <div class="panel-title-wrap">
-                            <div class="overline">Hasil Pembacaan</div>
-                            <h2 class="panel-title">Kesimpulan kondisi udara dan rekomendasi perlindungan</h2>
-                            <p class="panel-subtitle">
-                                Hasil ini menunjukkan kategori udara, polutan dominan, dan saran tindakan berdasarkan profil aktivitas pengguna.
+                    <div class="kepala-panel">
+                        <div class="bungkus-judul-panel">
+                            <div class="teks-atas">Hasil Pembacaan</div>
+                            <h2 class="judul-panel huruf-judul">Kesimpulan kondisi udara dan anjuran tindakan</h2>
+                            <p class="teks-panel">
+                                Bagian ini menunjukkan kategori udara, polutan paling tinggi, dan saran tindakan berdasarkan kegiatan pengguna.
                             </p>
                         </div>
                     </div>
-                    <div class="result-grid">
-                        <div class="result-card status-{status['kelas']}">
-                            <div class="badge">{status['badge']}</div>
-                            <h3 class="result-title serif">{status['judul']}</h3>
-                            <p class="result-text">{status['saran']}</p>
-                            <div class="action-list">
-                                <div class="action-item">Langkah 1: {status['aksi'][0]}</div>
-                                <div class="action-item">Langkah 2: {status['aksi'][1]}</div>
-                                <div class="action-item">Langkah 3: {status['aksi'][2]}</div>
+                    <div class="kisi-hasil">
+                        <div class="kartu-hasil status-{status['kelas']}">
+                            <div class="lencana-hasil">{status['badge']}</div>
+                            <h3 class="judul-hasil huruf-judul">{status['judul']}</h3>
+                            <p class="teks-hasil">{status['saran']}</p>
+                            <div class="daftar-saran">
+                                <div class="isi-saran">Langkah 1: {status['aksi'][0]}</div>
+                                <div class="isi-saran">Langkah 2: {status['aksi'][1]}</div>
+                                <div class="isi-saran">Langkah 3: {status['aksi'][2]}</div>
                             </div>
-                            <div class="highlight-grid">
-                                <div class="highlight-box">
-                                    <div class="highlight-label">Kategori model</div>
-                                    <div class="highlight-value">{kategori}</div>
+                            <div class="kisi-sorotan">
+                                <div class="kotak-sorotan">
+                                    <div class="label-sorotan">Kategori udara</div>
+                                    <div class="nilai-sorotan">{kategori_tampil}</div>
                                 </div>
-                                <div class="highlight-box">
-                                    <div class="highlight-label">Polutan dominan</div>
-                                    <div class="highlight-value">{zat_nama}</div>
+                                <div class="kotak-sorotan">
+                                    <div class="label-sorotan">Polutan paling tinggi</div>
+                                    <div class="nilai-sorotan">{zat_nama}</div>
                                 </div>
-                                <div class="highlight-box">
-                                    <div class="highlight-label">Nilai tertinggi</div>
-                                    <div class="highlight-value">{zat_nilai} µg/m³</div>
+                                <div class="kotak-sorotan">
+                                    <div class="label-sorotan">Nilai tertinggi</div>
+                                    <div class="nilai-sorotan">{zat_nilai}</div>
                                 </div>
-                                <div class="highlight-box">
-                                    <div class="highlight-label">Profil pengguna</div>
-                                    <div class="highlight-value">{tipe_pengguna}</div>
+                                <div class="kotak-sorotan">
+                                    <div class="label-sorotan">Jenis pengguna</div>
+                                    <div class="nilai-sorotan">{tipe_pengguna}</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="result-card">
-                            <div class="overline">Rekomendasi Tambahan</div>
-                            <h3 class="result-title serif" style="font-size:1.35rem;">Saran berdasarkan aktivitas pengguna</h3>
-                            <div class="recommendation-grid">
-                                <div class="recommendation-card">
-                                    <div class="recommendation-title">Masker</div>
-                                    <p class="recommendation-text">{rekomendasi['Masker']}</p>
+                        <div class="kartu-hasil">
+                            <div class="teks-atas">Anjuran Tambahan</div>
+                            <h3 class="judul-hasil huruf-judul" style="font-size:1.35rem;">Saran berdasarkan kegiatan pengguna</h3>
+                            <div class="kisi-anjuran">
+                                <div class="kartu-anjuran">
+                                    <div class="judul-anjuran">Masker</div>
+                                    <p class="teks-anjuran">{anjuran['Masker']}</p>
                                 </div>
-                                <div class="recommendation-card">
-                                    <div class="recommendation-title">Aktivitas</div>
-                                    <p class="recommendation-text">{rekomendasi['Aktivitas']}</p>
+                                <div class="kartu-anjuran">
+                                    <div class="judul-anjuran">Kegiatan</div>
+                                    <p class="teks-anjuran">{anjuran['Kegiatan']}</p>
                                 </div>
-                                <div class="recommendation-card">
-                                    <div class="recommendation-title">Perlindungan diri</div>
-                                    <p class="recommendation-text">{rekomendasi['Perlindungan']}</p>
+                                <div class="kartu-anjuran">
+                                    <div class="judul-anjuran">Perlindungan diri</div>
+                                    <p class="teks-anjuran">{anjuran['Perlindungan diri']}</p>
                                 </div>
-                                <div class="recommendation-card">
-                                    <div class="recommendation-title">Sunscreen</div>
-                                    <p class="recommendation-text">{rekomendasi['Sunscreen']}</p>
+                                <div class="kartu-anjuran">
+                                    <div class="judul-anjuran">Tabir surya</div>
+                                    <p class="teks-anjuran">{anjuran['Tabir surya']}</p>
                                 </div>
                             </div>
                         </div>
@@ -1391,16 +1551,16 @@ def tampilkan_hasil_analisis(nilai_input, tipe_pengguna, aktivitas, durasi, wakt
             st.markdown(
                 """
                 <section class="panel">
-                    <div class="panel-head">
-                        <div class="panel-title-wrap">
-                            <div class="overline">Visualisasi</div>
-                            <h2 class="panel-title">Perbandingan nilai setiap polutan</h2>
-                            <p class="panel-subtitle">
-                                Grafik membantu pengguna melihat polutan mana yang memiliki nilai paling menonjol.
+                    <div class="kepala-panel">
+                        <div class="bungkus-judul-panel">
+                            <div class="teks-atas">Gambaran Angka</div>
+                            <h2 class="judul-panel huruf-judul">Perbandingan nilai setiap polutan</h2>
+                            <p class="teks-panel">
+                                Grafik membantu pengguna melihat jenis polutan yang nilainya paling menonjol.
                             </p>
                         </div>
                     </div>
-                    <div class="panel-pad">
+                    <div class="isi-panel">
                 """,
                 unsafe_allow_html=True,
             )
@@ -1418,58 +1578,56 @@ def tampilkan_hasil_analisis(nilai_input, tipe_pengguna, aktivitas, durasi, wakt
                 }
             )
             st.dataframe(df_ringkasan, width="stretch", hide_index=True)
-
             st.markdown("</div></section>", unsafe_allow_html=True)
 
         except Exception as error:
-            st.error("Data belum bisa diproses. Periksa kembali model, file, atau nilai input.")
+            st.error("Data belum bisa diproses. Periksa kembali model, file, atau nilai masukan.")
             st.code(str(error))
 
 
-def tampilkan_cara_penggunaan():
+def tampilkan_panduan():
     st.markdown(
         """
         <section class="panel">
-            <div class="panel-head">
-                <div class="panel-title-wrap">
-                    <div class="overline">Panduan Singkat</div>
-                    <h2 class="panel-title">Cara menggunakan aplikasi</h2>
-                    <p class="panel-subtitle">
-                        Aplikasi ini dibuat agar pengguna tidak bingung meskipun belum memiliki data asli.
-                        Preset tersedia untuk simulasi, sedangkan input manual dapat digunakan jika memiliki data pengukuran.
+            <div class="kepala-panel">
+                <div class="bungkus-judul-panel">
+                    <div class="teks-atas">Panduan Singkat</div>
+                    <h2 class="judul-panel huruf-judul">Cara menggunakan aplikasi</h2>
+                    <p class="teks-panel">
+                        Aplikasi ini dibuat agar pengguna tetap bisa mencoba alurnya meskipun belum memiliki data asli.
                     </p>
                 </div>
             </div>
-            <div class="info-grid">
-                <div class="info-card">
-                    <div class="info-number">1</div>
-                    <div class="info-title">Pilih mode input</div>
-                    <p class="info-text">Gunakan preset untuk simulasi atau input manual jika memiliki data polutan sendiri.</p>
+            <div class="kisi-info">
+                <div class="kartu-info">
+                    <div class="nomor-info">1</div>
+                    <div class="judul-info">Pilih contoh nilai</div>
+                    <p class="teks-info">Gunakan contoh nilai untuk simulasi atau isi sendiri jika memiliki data polutan.</p>
                 </div>
-                <div class="info-card">
-                    <div class="info-number">2</div>
-                    <div class="info-title">Pilih profil pengguna</div>
-                    <p class="info-text">Profil membantu sistem memberi rekomendasi yang lebih sesuai dengan kebutuhan pengguna.</p>
+                <div class="kartu-info">
+                    <div class="nomor-info">2</div>
+                    <div class="judul-info">Pilih jenis pengguna</div>
+                    <p class="teks-info">Jenis pengguna membantu sistem memberi anjuran yang lebih sesuai.</p>
                 </div>
-                <div class="info-card">
-                    <div class="info-number">3</div>
-                    <div class="info-title">Isi enam nilai polutan</div>
-                    <p class="info-text">Masukkan PM10, PM2.5, SO2, CO, O3, dan NO2 sesuai data atau contoh simulasi.</p>
+                <div class="kartu-info">
+                    <div class="nomor-info">3</div>
+                    <div class="judul-info">Isi enam nilai polutan</div>
+                    <p class="teks-info">Masukkan PM10, PM2.5, SO2, CO, O3, dan NO2.</p>
                 </div>
-                <div class="info-card">
-                    <div class="info-number">4</div>
-                    <div class="info-title">Tekan tombol proses</div>
-                    <p class="info-text">Sistem akan memproses data menggunakan model klasifikasi kualitas udara.</p>
+                <div class="kartu-info">
+                    <div class="nomor-info">4</div>
+                    <div class="judul-info">Tekan tombol proses</div>
+                    <p class="teks-info">Sistem akan membaca angka dan menentukan kategori udara.</p>
                 </div>
-                <div class="info-card">
-                    <div class="info-number">5</div>
-                    <div class="info-title">Baca hasil kategori</div>
-                    <p class="info-text">Hasil utama berupa GOOD, MEDIUM, atau UNHEALTHY.</p>
+                <div class="kartu-info">
+                    <div class="nomor-info">5</div>
+                    <div class="judul-info">Baca hasil kategori</div>
+                    <p class="teks-info">Hasil utama berupa Baik, Sedang, atau Kurang Sehat.</p>
                 </div>
-                <div class="info-card">
-                    <div class="info-number">6</div>
-                    <div class="info-title">Ikuti rekomendasi</div>
-                    <p class="info-text">Rekomendasi mencakup aktivitas, masker, perlindungan diri, dan sunscreen jika relevan.</p>
+                <div class="kartu-info">
+                    <div class="nomor-info">6</div>
+                    <div class="judul-info">Ikuti anjuran</div>
+                    <p class="teks-info">Anjuran mencakup kegiatan, masker, perlindungan diri, dan tabir surya jika diperlukan.</p>
                 </div>
             </div>
         </section>
@@ -1480,14 +1638,14 @@ def tampilkan_cara_penggunaan():
 
 def main():
     terapkan_css()
-    tampilkan_topbar()
-    tampilkan_hero()
+    tampilkan_kepala_atas()
+    tampilkan_pahlawan()
     tampilkan_ringkasan()
 
-    st.markdown('<div class="nav-wrap">', unsafe_allow_html=True)
+    st.markdown('<div class="wadah-menu">', unsafe_allow_html=True)
     menu = st.radio(
         "Navigasi",
-        ["Beranda", "Cek Kualitas Udara", "Cara Penggunaan"],
+        ["Beranda", "Alur Kerja Data", "Cek Kualitas Udara", "Panduan"],
         horizontal=True,
         label_visibility="collapsed",
     )
@@ -1495,10 +1653,12 @@ def main():
 
     if menu == "Beranda":
         tampilkan_beranda()
+    elif menu == "Alur Kerja Data":
+        tampilkan_alur_kerja_data()
     elif menu == "Cek Kualitas Udara":
         tampilkan_form_cek_udara()
     else:
-        tampilkan_cara_penggunaan()
+        tampilkan_panduan()
 
 
 if __name__ == "__main__":
