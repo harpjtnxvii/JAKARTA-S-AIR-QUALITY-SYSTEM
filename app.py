@@ -121,6 +121,107 @@ TAHAP_KERJA = [
     },
 ]
 
+RINGKASAN_MODEL = [
+    {
+        "label": "Data awal",
+        "nilai": "1825 baris",
+        "catatan": "Jumlah data sebelum proses pembersihan.",
+    },
+    {
+        "label": "Data bersih",
+        "nilai": "1284 baris",
+        "catatan": "Jumlah data setelah data kosong dan data tidak valid dibersihkan.",
+    },
+    {
+        "label": "Kolom masukan",
+        "nilai": "6 polutan",
+        "catatan": "PM10, PM2.5, SO2, CO, O3, dan NO2.",
+    },
+    {
+        "label": "Metode",
+        "nilai": "Random Forest",
+        "catatan": "Metode yang digunakan untuk menentukan kategori udara.",
+    },
+    {
+        "label": "Hasil model",
+        "nilai": "Akurasi ±99%",
+        "catatan": "Hasil pengujian menunjukkan model mampu membaca pola data dengan baik.",
+    },
+    {
+        "label": "Catatan",
+        "nilai": "Data belum seimbang",
+        "catatan": "Sistem tetap diposisikan sebagai media edukasi, simulasi, dan penelitian.",
+    },
+]
+
+BATASAN_SISTEM = [
+    "Sistem tidak mengukur udara secara langsung.",
+    "Hasil bergantung pada angka polutan yang dimasukkan pengguna.",
+    "Sistem bukan alat resmi pemerintah untuk menentukan kualitas udara.",
+    "Anjuran yang diberikan bersifat informasi umum.",
+    "Data yang digunakan masih terbatas pada data kualitas udara Jakarta tahun 2023.",
+]
+
+FOTO_EDUKASI = [
+    {
+        "kategori": "Udara Baik",
+        "kelas": "baik",
+        "folder": os.path.join("assets", "images", "udara baik"),
+        "deskripsi": (
+            "Contoh visual udara baik menampilkan langit yang lebih cerah dan jarak pandang yang lebih jelas. "
+            "Foto ini hanya menjadi bahan edukasi, bukan dasar penentuan hasil sistem."
+        ),
+        "ciri": [
+            "Langit terlihat lebih terang.",
+            "Gedung atau objek jauh terlihat lebih jelas.",
+            "Warna udara tidak tampak terlalu kelabu.",
+        ],
+        "file": [
+            "udara_baik_1.jpeg",
+            "udara_baik_2.jpeg",
+            "udara_baik_3.jpeg",
+        ],
+    },
+    {
+        "kategori": "Udara Sedang",
+        "kelas": "sedang",
+        "folder": os.path.join("assets", "images", "udara sedang"),
+        "deskripsi": (
+            "Contoh visual udara sedang menampilkan kondisi langit yang mulai tampak buram. "
+            "Gedung masih terlihat, tetapi jarak pandang tidak sejelas kondisi udara baik."
+        ),
+        "ciri": [
+            "Langit mulai terlihat agak kelabu.",
+            "Objek jauh masih terlihat, tetapi tidak terlalu tajam.",
+            "Kondisi visual dapat dipengaruhi cuaca, kabut, atau polusi ringan.",
+        ],
+        "file": [
+            "udara_sedang_1.jpeg",
+            "udara_sedang_2.jpeg",
+            "udara_sedang_3.jpeg",
+        ],
+    },
+    {
+        "kategori": "Udara Kurang Sehat",
+        "kelas": "buruk",
+        "folder": os.path.join("assets", "images", "udara kurang sehat"),
+        "deskripsi": (
+            "Contoh visual udara kurang sehat menampilkan kondisi langit atau gedung yang terlihat tertutup kabut polusi. "
+            "Foto ini membantu pengguna memahami contoh tampilan lingkungan yang kurang baik."
+        ),
+        "ciri": [
+            "Langit terlihat lebih kelabu atau kusam.",
+            "Gedung atau objek jauh tampak buram.",
+            "Jarak pandang menurun dan suasana terlihat lebih pekat.",
+        ],
+        "file": [
+            "udara_kurang_sehat_1.jpeg",
+            "udara_kurang_sehat_2.jpeg",
+            "udara_kurang_sehat_3.jpeg",
+        ],
+    },
+]
+
 
 def terapkan_css():
     css = """
@@ -319,7 +420,7 @@ def terapkan_css():
 
     div[data-testid="stRadio"] > div {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(7, minmax(0, 1fr));
         gap: 12px;
         background: rgba(255, 253, 247, 0.82);
         border: 1px solid var(--garis);
@@ -354,7 +455,7 @@ def terapkan_css():
     div[data-testid="stRadio"] p {
         margin: 0 !important;
         color: var(--teks) !important;
-        font-size: 0.95rem !important;
+        font-size: 0.86rem !important;
         font-weight: 900 !important;
         text-align: center;
     }
@@ -475,24 +576,27 @@ def terapkan_css():
         margin: 0;
     }
 
-    .kisi-tahap {
+    .kisi-tahap,
+    .kisi-evaluasi {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 16px;
         padding: 28px;
     }
 
-    .kartu-tahap {
+    .kartu-tahap,
+    .kartu-evaluasi {
         position: relative;
         background: #FFFEFB;
         border: 1px solid var(--garis);
         border-radius: 24px;
         padding: 22px;
-        min-height: 260px;
+        min-height: 230px;
         overflow: hidden;
     }
 
-    .kartu-tahap::before {
+    .kartu-tahap::before,
+    .kartu-evaluasi::before {
         content: "";
         position: absolute;
         inset: 0 auto 0 0;
@@ -513,29 +617,32 @@ def terapkan_css():
         margin-bottom: 14px;
     }
 
-    .judul-tahap {
+    .judul-tahap,
+    .judul-evaluasi {
         color: var(--cokelat);
         font-size: 1.05rem;
         font-weight: 900;
         margin-bottom: 10px;
     }
 
-    .isi-tahap {
+    .isi-tahap,
+    .isi-evaluasi {
         color: var(--teks-lembut);
         font-size: 0.94rem;
         line-height: 1.7;
         margin-bottom: 14px;
     }
 
-    .hasil-tahap {
+    .hasil-tahap,
+    .nilai-evaluasi {
         background: rgba(67, 118, 108, 0.08);
         border: 1px solid rgba(67, 118, 108, 0.12);
         border-radius: 16px;
         padding: 12px;
         color: var(--utama-gelap);
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         line-height: 1.6;
-        font-weight: 700;
+        font-weight: 800;
     }
 
     .kisi-info {
@@ -739,13 +846,15 @@ def terapkan_css():
         margin-bottom: 18px;
     }
 
-    .daftar-saran {
+    .daftar-saran,
+    .daftar-batasan {
         display: grid;
         gap: 10px;
         margin-top: 12px;
     }
 
-    .isi-saran {
+    .isi-saran,
+    .isi-batasan {
         display: flex;
         gap: 10px;
         align-items: flex-start;
@@ -819,6 +928,101 @@ def terapkan_css():
         padding: 18px 28px 28px 28px;
     }
 
+    .download-wrap {
+        padding: 0 28px 28px 28px;
+    }
+
+
+    .kisi-visual {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        padding: 28px;
+    }
+
+    .kartu-visual {
+        background: #FFFEFB;
+        border: 1px solid var(--garis);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--bayangan-tipis);
+    }
+
+    .isi-visual {
+        padding: 18px;
+    }
+
+    .judul-visual {
+        color: var(--cokelat);
+        font-size: 1rem;
+        font-weight: 900;
+        margin-bottom: 8px;
+    }
+
+    .teks-visual {
+        color: var(--teks-lembut);
+        font-size: 0.92rem;
+        line-height: 1.68;
+        margin: 0;
+    }
+
+    .lencana-visual {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(67, 118, 108, 0.10);
+        color: var(--utama-gelap);
+        font-size: 0.78rem;
+        font-weight: 900;
+        margin-bottom: 12px;
+    }
+
+    .visual-baik {
+        border-left: 7px solid var(--baik);
+    }
+
+    .visual-sedang {
+        border-left: 7px solid var(--sedang);
+    }
+
+    .visual-buruk {
+        border-left: 7px solid var(--buruk);
+    }
+
+    .daftar-ciri {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .isi-ciri {
+        padding: 11px 13px;
+        border-radius: 14px;
+        background: rgba(248, 250, 229, 0.72);
+        border: 1px solid rgba(67, 118, 108, 0.10);
+        color: var(--teks);
+        font-size: 0.9rem;
+        line-height: 1.55;
+    }
+
+    .foto-caption {
+        color: var(--teks-lembut);
+        font-size: 0.84rem;
+        line-height: 1.55;
+        margin-top: 8px;
+    }
+
+    .kotak-sumber {
+        background: rgba(255, 253, 247, 0.92);
+        border: 1px solid var(--garis);
+        border-radius: 22px;
+        padding: 18px;
+        color: var(--teks-lembut);
+        line-height: 1.68;
+        font-size: 0.92rem;
+    }
+
     [data-testid="stPlotlyChart"],
     [data-testid="stVegaLiteChart"],
     [data-testid="stBarChart"],
@@ -843,8 +1047,14 @@ def terapkan_css():
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .kisi-tahap {
+        .kisi-tahap,
+        .kisi-evaluasi,
+        .kisi-visual {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        div[data-testid="stRadio"] > div {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
     }
 
@@ -874,7 +1084,9 @@ def terapkan_css():
         .kisi-sorotan,
         .kisi-anjuran,
         .kisi-ringkasan,
-        .kisi-tahap {
+        .kisi-tahap,
+        .kisi-evaluasi,
+        .kisi-visual {
             grid-template-columns: 1fr;
         }
 
@@ -912,7 +1124,8 @@ def terapkan_css():
         .keterangan-kolom,
         .teks-hasil,
         .teks-anjuran,
-        .teks-catatan {
+        .teks-catatan,
+        .isi-evaluasi {
             font-size: 0.94rem;
         }
 
@@ -924,7 +1137,8 @@ def terapkan_css():
         .bungkus-kolom,
         .kotak-catatan,
         .kartu-anjuran,
-        .kartu-tahap {
+        .kartu-tahap,
+        .kartu-evaluasi {
             border-radius: 20px;
         }
 
@@ -935,7 +1149,10 @@ def terapkan_css():
         .kisi-hasil,
         .kisi-info,
         .kisi-tahap,
-        .catatan-bawah {
+        .kisi-evaluasi,
+        .kisi-visual,
+        .catatan-bawah,
+        .download-wrap {
             padding-left: 16px;
             padding-right: 16px;
         }
@@ -979,7 +1196,9 @@ def terapkan_css():
         .bagian-form,
         .kisi-hasil,
         .kisi-info,
-        .kisi-tahap {
+        .kisi-tahap,
+        .kisi-evaluasi,
+        .kisi-visual {
             gap: 12px;
         }
     }
@@ -1005,11 +1224,14 @@ def terapkan_css():
         .kotak-catatan,
         .bungkus-kolom,
         .kartu-anjuran,
-        .kartu-tahap {
+        .kartu-tahap,
+        .kartu-evaluasi,
+        .isi-visual {
             padding: 14px;
         }
 
-        .isi-saran {
+        .isi-saran,
+        .isi-batasan {
             padding: 10px 12px;
         }
     }
@@ -1185,6 +1407,78 @@ def buat_grafik(nilai_input):
     return fig
 
 
+def validasi_nilai(nilai_input, jenis_penggunaan, pilihan_nilai):
+    if all(nilai == 0 for nilai in nilai_input):
+        st.warning("Semua nilai polutan masih 0. Masukkan angka yang sesuai agar sistem dapat membaca kondisi udara.")
+        return False
+
+    if any(nilai > 500 for nilai in nilai_input):
+        st.warning("Nilai yang dimasukkan terlalu tinggi. Pastikan angka berasal dari data pengukuran yang valid.")
+        return False
+
+    if jenis_penggunaan == "Simulasi pembelajaran":
+        st.info("Hasil ini digunakan sebagai simulasi pembelajaran, bukan sebagai hasil pengukuran resmi.")
+
+    if jenis_penggunaan == "Data pengukuran asli":
+        st.info("Hasil ini menggunakan angka yang dimasukkan pengguna dan bergantung pada kebenaran data tersebut.")
+
+    if pilihan_nilai != "Isi Sendiri":
+        st.info("Pengguna sedang memakai contoh nilai. Hasil ini cocok untuk memahami alur kerja sistem.")
+
+    return True
+
+
+def buat_data_unduhan(
+    nilai_input,
+    kategori_tampil,
+    zat_nama,
+    zat_nilai,
+    tipe_pengguna,
+    aktivitas,
+    durasi,
+    waktu,
+    jenis_penggunaan,
+    anjuran,
+):
+    return pd.DataFrame(
+        [
+            {
+                "PM10": nilai_input[0],
+                "PM2.5": nilai_input[1],
+                "SO2": nilai_input[2],
+                "CO": nilai_input[3],
+                "O3": nilai_input[4],
+                "NO2": nilai_input[5],
+                "Kategori Udara": kategori_tampil,
+                "Polutan Paling Tinggi": zat_nama,
+                "Nilai Tertinggi": zat_nilai,
+                "Jenis Pengguna": tipe_pengguna,
+                "Rencana Kegiatan": aktivitas,
+                "Lama Kegiatan": durasi,
+                "Waktu Kegiatan": waktu,
+                "Jenis Penggunaan": jenis_penggunaan,
+                "Anjuran Masker": anjuran["Masker"],
+                "Anjuran Kegiatan": anjuran["Kegiatan"],
+                "Anjuran Perlindungan Diri": anjuran["Perlindungan diri"],
+                "Anjuran Tabir Surya": anjuran["Tabir surya"],
+            }
+        ]
+    )
+
+
+
+def baca_sumber_foto():
+    path = os.path.join("docs", "sumber_foto.txt")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as file:
+            return file.read().strip()
+    return ""
+
+
+def buat_daftar_ciri(ciri):
+    return "".join([f'<div class="isi-ciri">{nomor}. {isi}</div>' for nomor, isi in enumerate(ciri, start=1)])
+
+
 def tampilkan_kepala_atas():
     st.markdown(
         """
@@ -1344,14 +1638,111 @@ def tampilkan_alur_kerja_data():
                 <div class="bungkus-judul-panel">
                     <div class="teks-atas">CRISP-DM</div>
                     <h2 class="judul-panel huruf-judul">Alur kerja data pada penelitian ini</h2>
-                    <p class="teks-panel">
-                        CRISP-DM digunakan agar penelitian berjalan rapi. Tahapannya dimulai dari memahami masalah,
-                        memahami data, menyiapkan data, membuat model, menilai hasil, sampai menerapkan sistem ke aplikasi.
-                    </p>
                 </div>
             </div>
             <div class="kisi-tahap">
                 {kartu}
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def tampilkan_evaluasi_model():
+    kartu = ""
+
+    for item in RINGKASAN_MODEL:
+        kartu += f"""
+        <div class="kartu-evaluasi">
+            <div class="judul-evaluasi">{item["label"]}</div>
+            <div class="nilai-evaluasi">{item["nilai"]}</div>
+            <p class="isi-evaluasi">{item["catatan"]}</p>
+        </div>
+        """
+
+    batasan = ""
+    for nomor, isi in enumerate(BATASAN_SISTEM, start=1):
+        batasan += f'<div class="isi-batasan">{nomor}. {isi}</div>'
+
+    st.markdown(
+        f"""
+        <section class="panel">
+            <div class="kepala-panel">
+                <div class="bungkus-judul-panel">
+                    <div class="teks-atas">Evaluasi Model</div>
+                    <h2 class="judul-panel huruf-judul">Ringkasan hasil pembuatan model</h2>
+                    <p class="teks-panel">
+                        Halaman ini menjelaskan alasan model dapat digunakan dalam aplikasi.
+                        Ringkasan dibuat sederhana agar mudah dipahami saat bimbingan atau presentasi.
+                    </p>
+                </div>
+            </div>
+            <div class="kisi-evaluasi">
+                {kartu}
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="kepala-panel">
+                <div class="bungkus-judul-panel">
+                    <div class="teks-atas">Keterbatasan Sistem</div>
+                    <h2 class="judul-panel huruf-judul">Batasan yang perlu diketahui pengguna</h2>
+                </div>
+            </div>
+            <div class="isi-panel">
+                <div class="daftar-batasan">
+                    {batasan}
+                </div>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def tampilkan_data_instansi():
+    st.markdown(
+        """
+        <section class="panel">
+            <div class="kepala-panel">
+                <div class="bungkus-judul-panel">
+                    <div class="teks-atas">Data dan Instansi Terkait</div>
+                    <h2 class="judul-panel huruf-judul">Keterkaitan data dengan penelitian kualitas udara Jakarta</h2>
+                    <p class="teks-panel">
+                        Halaman ini menjelaskan sumber data dan hubungan topik penelitian dengan instansi yang relevan,
+                        tanpa mengklaim adanya kerja sama langsung.
+                    </p>
+                </div>
+            </div>
+            <div class="kisi-info">
+                <div class="kartu-info">
+                    <div class="nomor-info">1</div>
+                    <div class="judul-info">Sumber dataset</div>
+                    <p class="teks-info">
+                        Dataset yang digunakan diperoleh dari Kaggle dengan keterangan bahwa sumber awal data berasal dari Satu Data Jakarta.
+                    </p>
+                </div>
+                <div class="kartu-info">
+                    <div class="nomor-info">2</div>
+                    <div class="judul-info">Keterkaitan instansi</div>
+                    <p class="teks-info">
+                        Topik penelitian dikaitkan dengan kebutuhan informasi kualitas udara yang relevan dengan ruang lingkup
+                        Dinas Lingkungan Hidup Provinsi DKI Jakarta.
+                    </p>
+                </div>
+                <div class="kartu-info">
+                    <div class="nomor-info">3</div>
+                    <div class="judul-info">Tidak ada kerja sama langsung</div>
+                    <p class="teks-info">
+                        Penelitian ini tidak melakukan kerja sama langsung dengan instansi terkait dan tidak mengatasnamakan instansi tersebut.
+                    </p>
+                </div>
+            </div>
+            <div class="catatan-bawah">
+                Dataset yang digunakan diperoleh dari Kaggle, dengan keterangan bahwa sumber awal data berasal dari Satu Data Jakarta.
+                Penelitian ini tidak melakukan kerja sama langsung dengan instansi terkait, namun topik penelitian dikaitkan dengan
+                kebutuhan informasi kualitas udara yang relevan dengan ruang lingkup Dinas Lingkungan Hidup Provinsi DKI Jakarta.
             </div>
         </section>
         """,
@@ -1395,7 +1786,7 @@ def tampilkan_form_cek_udara():
     with st.form("form_kualitas_udara"):
         st.markdown('<div class="bagian-form">', unsafe_allow_html=True)
 
-        col_a, col_b, col_c, col_d = st.columns(4, gap="medium")
+        col_a, col_b, col_c = st.columns(3, gap="medium")
 
         with col_a:
             contoh = st.selectbox(
@@ -1406,31 +1797,41 @@ def tampilkan_form_cek_udara():
             )
 
         with col_b:
+            jenis_penggunaan = st.selectbox(
+                "Jenis penggunaan",
+                ["Simulasi pembelajaran", "Data pengukuran asli"],
+                key="jenis_penggunaan",
+            )
+
+        with col_c:
             tipe_pengguna = st.selectbox(
                 "Jenis pengguna",
                 ["Umum", "Anak-anak", "Lansia", "Gangguan pernapasan", "Pekerja luar ruangan"],
                 key="tipe_pengguna",
             )
 
-        with col_c:
+        col_d, col_e, col_f = st.columns(3, gap="medium")
+
+        with col_d:
             aktivitas = st.selectbox(
                 "Rencana kegiatan",
                 ["Di dalam ruangan", "Perjalanan kerja atau sekolah", "Olahraga luar ruangan", "Kegiatan luar ruangan ringan"],
                 key="aktivitas",
             )
 
-        with col_d:
+        with col_e:
             durasi = st.selectbox(
                 "Lama kegiatan",
                 ["Kurang dari 30 menit", "30 sampai 60 menit", "Lebih dari 1 jam"],
                 key="durasi",
             )
 
-        waktu = st.selectbox(
-            "Waktu kegiatan",
-            ["Pagi", "Siang", "Sore atau Malam"],
-            key="waktu_kegiatan",
-        )
+        with col_f:
+            waktu = st.selectbox(
+                "Waktu kegiatan",
+                ["Pagi", "Siang", "Sore atau Malam"],
+                key="waktu_kegiatan",
+            )
 
         st.markdown(
             """
@@ -1439,6 +1840,7 @@ def tampilkan_form_cek_udara():
                 <p class="teks-catatan">
                     Sistem menerima angka polutan sebagai masukan. Jika pengguna belum memiliki data asli,
                     contoh nilai dapat digunakan agar alur masukan, proses, dan hasil tetap mudah dipahami.
+                    Jika memilih data pengukuran asli, hasil sangat bergantung pada kebenaran angka yang dimasukkan.
                 </p>
             </div>
             """,
@@ -1465,10 +1867,19 @@ def tampilkan_form_cek_udara():
 
     if tombol:
         nilai_input = [nilai_pm10, nilai_pm25, nilai_so2, nilai_co, nilai_o3, nilai_no2]
-        tampilkan_hasil_analisis(nilai_input, tipe_pengguna, aktivitas, durasi, waktu)
+
+        if validasi_nilai(nilai_input, jenis_penggunaan, contoh):
+            tampilkan_hasil_analisis(
+                nilai_input,
+                tipe_pengguna,
+                aktivitas,
+                durasi,
+                waktu,
+                jenis_penggunaan,
+            )
 
 
-def tampilkan_hasil_analisis(nilai_input, tipe_pengguna, aktivitas, durasi, waktu):
+def tampilkan_hasil_analisis(nilai_input, tipe_pengguna, aktivitas, durasi, waktu, jenis_penggunaan):
     with st.spinner("Sedang membaca data udara..."):
         try:
             df_input = buat_dataframe_input(nilai_input)
@@ -1515,8 +1926,8 @@ def tampilkan_hasil_analisis(nilai_input, tipe_pengguna, aktivitas, durasi, wakt
                                     <div class="nilai-sorotan">{zat_nilai}</div>
                                 </div>
                                 <div class="kotak-sorotan">
-                                    <div class="label-sorotan">Jenis pengguna</div>
-                                    <div class="nilai-sorotan">{tipe_pengguna}</div>
+                                    <div class="label-sorotan">Jenis penggunaan</div>
+                                    <div class="nilai-sorotan">{jenis_penggunaan}</div>
                                 </div>
                             </div>
                         </div>
@@ -1580,9 +1991,169 @@ def tampilkan_hasil_analisis(nilai_input, tipe_pengguna, aktivitas, durasi, wakt
             st.dataframe(df_ringkasan, width="stretch", hide_index=True)
             st.markdown("</div></section>", unsafe_allow_html=True)
 
+            df_unduhan = buat_data_unduhan(
+                nilai_input,
+                kategori_tampil,
+                zat_nama,
+                zat_nilai,
+                tipe_pengguna,
+                aktivitas,
+                durasi,
+                waktu,
+                jenis_penggunaan,
+                anjuran,
+            )
+
+            csv_unduhan = df_unduhan.to_csv(index=False).encode("utf-8")
+
+            st.markdown(
+                """
+                <section class="panel">
+                    <div class="kepala-panel">
+                        <div class="bungkus-judul-panel">
+                            <div class="teks-atas">Unduh Hasil</div>
+                            <h2 class="judul-panel huruf-judul">Simpan ringkasan hasil pembacaan</h2>
+                            <p class="teks-panel">
+                                Hasil dapat diunduh untuk kebutuhan demo, dokumentasi, atau lampiran pengujian sistem.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="download-wrap">
+                """,
+                unsafe_allow_html=True,
+            )
+
+            st.download_button(
+                label="Unduh hasil dalam bentuk CSV",
+                data=csv_unduhan,
+                file_name="hasil_kualitas_udara_jakarta.csv",
+                mime="text/csv",
+                width="stretch",
+            )
+
+            st.markdown("</div></section>", unsafe_allow_html=True)
+
         except Exception as error:
             st.error("Data belum bisa diproses. Periksa kembali model, file, atau nilai masukan.")
             st.code(str(error))
+
+
+
+def tampilkan_edukasi_visual():
+    st.markdown(
+        """
+        <section class="panel">
+            <div class="kepala-panel">
+                <div class="bungkus-judul-panel">
+                    <div class="teks-atas">Edukasi Visual</div>
+                    <h2 class="judul-panel huruf-judul">Contoh tampilan visual kualitas udara</h2>
+                    <p class="teks-panel">
+                        Halaman ini menampilkan contoh foto kondisi udara baik, sedang, dan kurang sehat.
+                        Foto digunakan sebagai ilustrasi edukasi agar pengguna lebih mudah memahami gambaran visual lingkungan.
+                    </p>
+                </div>
+            </div>
+            <div class="catatan-bawah">
+                Perlu diingat, tampilan langit tidak selalu menggambarkan kualitas udara secara pasti. Langit yang terlihat cerah
+                tetap dapat memiliki polutan tinggi. Karena itu, foto pada halaman ini hanya menjadi pendukung edukasi.
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    for data in FOTO_EDUKASI:
+        daftar_ciri = buat_daftar_ciri(data["ciri"])
+
+        st.markdown(
+            f"""
+            <section class="panel">
+                <div class="kepala-panel">
+                    <div class="bungkus-judul-panel">
+                        <div class="teks-atas">{data["kategori"]}</div>
+                        <h2 class="judul-panel huruf-judul">Ilustrasi {data["kategori"].lower()}</h2>
+                        <p class="teks-panel">{data["deskripsi"]}</p>
+                    </div>
+                </div>
+                <div class="kisi-info">
+                    <div class="kartu-info visual-{data["kelas"]}">
+                        <div class="nomor-info">1</div>
+                        <div class="judul-info">Fungsi foto</div>
+                        <p class="teks-info">Sebagai contoh visual untuk edukasi pengguna.</p>
+                    </div>
+                    <div class="kartu-info visual-{data["kelas"]}">
+                        <div class="nomor-info">2</div>
+                        <div class="judul-info">Bukan dasar hasil</div>
+                        <p class="teks-info">Kategori udara tetap ditentukan dari angka polutan, bukan dari gambar.</p>
+                    </div>
+                    <div class="kartu-info visual-{data["kelas"]}">
+                        <div class="nomor-info">3</div>
+                        <div class="judul-info">Ciri umum</div>
+                        <p class="teks-info">Ciri visual hanya membantu pemahaman, bukan pengukuran resmi.</p>
+                    </div>
+                </div>
+                <div class="isi-panel">
+                    <div class="daftar-ciri">
+                        {daftar_ciri}
+                    </div>
+                </div>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        kolom = st.columns(3, gap="large")
+        for index, nama_file in enumerate(data["file"]):
+            path = os.path.join(data["folder"], nama_file)
+            with kolom[index]:
+                if os.path.exists(path):
+                    st.image(
+                        path,
+                        caption=f"{data['kategori']} {index + 1} - Ilustrasi edukasi visual",
+                        width="stretch",
+                    )
+                else:
+                    st.warning(f"Foto belum ditemukan: {path}")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+    sumber_foto = baca_sumber_foto()
+    if sumber_foto:
+        st.markdown(
+            """
+            <section class="panel">
+                <div class="kepala-panel">
+                    <div class="bungkus-judul-panel">
+                        <div class="teks-atas">Sumber Foto</div>
+                        <h2 class="judul-panel huruf-judul">Daftar sumber gambar edukasi visual</h2>
+                        <p class="teks-panel">
+                            Sumber foto dicantumkan agar penggunaan gambar lebih jelas dan dapat dipertanggungjawabkan dalam laporan.
+                        </p>
+                    </div>
+                </div>
+                <div class="isi-panel">
+            """,
+            unsafe_allow_html=True,
+        )
+        st.code(sumber_foto)
+        st.markdown("</div></section>", unsafe_allow_html=True)
+    else:
+        st.markdown(
+            """
+            <section class="panel">
+                <div class="kepala-panel">
+                    <div class="bungkus-judul-panel">
+                        <div class="teks-atas">Sumber Foto</div>
+                        <h2 class="judul-panel huruf-judul">File sumber foto belum terbaca</h2>
+                        <p class="teks-panel">
+                            Tambahkan daftar sumber foto pada file docs/sumber_foto.txt agar informasi sumber dapat ditampilkan di aplikasi.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 def tampilkan_panduan():
@@ -1606,8 +2177,8 @@ def tampilkan_panduan():
                 </div>
                 <div class="kartu-info">
                     <div class="nomor-info">2</div>
-                    <div class="judul-info">Pilih jenis pengguna</div>
-                    <p class="teks-info">Jenis pengguna membantu sistem memberi anjuran yang lebih sesuai.</p>
+                    <div class="judul-info">Pilih jenis penggunaan</div>
+                    <p class="teks-info">Pilih simulasi pembelajaran atau data pengukuran asli sesuai kebutuhan.</p>
                 </div>
                 <div class="kartu-info">
                     <div class="nomor-info">3</div>
@@ -1626,8 +2197,8 @@ def tampilkan_panduan():
                 </div>
                 <div class="kartu-info">
                     <div class="nomor-info">6</div>
-                    <div class="judul-info">Ikuti anjuran</div>
-                    <p class="teks-info">Anjuran mencakup kegiatan, masker, perlindungan diri, dan tabir surya jika diperlukan.</p>
+                    <div class="judul-info">Unduh hasil</div>
+                    <p class="teks-info">Hasil pembacaan dapat diunduh sebagai CSV untuk dokumentasi.</p>
                 </div>
             </div>
         </section>
@@ -1645,7 +2216,15 @@ def main():
     st.markdown('<div class="wadah-menu">', unsafe_allow_html=True)
     menu = st.radio(
         "Navigasi",
-        ["Beranda", "Alur Kerja Data", "Cek Kualitas Udara", "Panduan"],
+        [
+            "Beranda",
+            "Alur Kerja Data",
+            "Cek Kualitas Udara",
+            "Evaluasi Model",
+            "Data dan Instansi",
+            "Edukasi Visual",
+            "Panduan",
+        ],
         horizontal=True,
         label_visibility="collapsed",
     )
@@ -1657,6 +2236,12 @@ def main():
         tampilkan_alur_kerja_data()
     elif menu == "Cek Kualitas Udara":
         tampilkan_form_cek_udara()
+    elif menu == "Evaluasi Model":
+        tampilkan_evaluasi_model()
+    elif menu == "Data dan Instansi":
+        tampilkan_data_instansi()
+    elif menu == "Edukasi Visual":
+        tampilkan_edukasi_visual()
     else:
         tampilkan_panduan()
 
