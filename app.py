@@ -1487,10 +1487,9 @@ def tampilkan_kepala_atas():
                 <div class="ikon-merek">☁️</div>
                 <div>
                     <div class="judul-merek">Sistem Kualitas Udara Jakarta</div>
-                    <div class="teks-merek">Alur kerja data, klasifikasi udara, dan anjuran kegiatan</div>
                 </div>
             </div>
-            <div class="label-status">Aplikasi penelitian berbasis data</div>
+            <div class="label-status">Aplikasi Berbasis Data</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1672,10 +1671,6 @@ def tampilkan_evaluasi_model():
                 <div class="bungkus-judul-panel">
                     <div class="teks-atas">Evaluasi Model</div>
                     <h2 class="judul-panel huruf-judul">Ringkasan hasil pembuatan model</h2>
-                    <p class="teks-panel">
-                        Halaman ini menjelaskan alasan model dapat digunakan dalam aplikasi.
-                        Ringkasan dibuat sederhana agar mudah dipahami saat bimbingan atau presentasi.
-                    </p>
                 </div>
             </div>
             <div class="kisi-evaluasi">
@@ -1738,11 +1733,6 @@ def tampilkan_data_instansi():
                         Penelitian ini tidak melakukan kerja sama langsung dengan instansi terkait dan tidak mengatasnamakan instansi tersebut.
                     </p>
                 </div>
-            </div>
-            <div class="catatan-bawah">
-                Dataset yang digunakan diperoleh dari Kaggle, dengan keterangan bahwa sumber awal data berasal dari Satu Data Jakarta.
-                Penelitian ini tidak melakukan kerja sama langsung dengan instansi terkait, namun topik penelitian dikaitkan dengan
-                kebutuhan informasi kualitas udara yang relevan dengan ruang lingkup Dinas Lingkungan Hidup Provinsi DKI Jakarta.
             </div>
         </section>
         """,
@@ -2047,10 +2037,6 @@ def tampilkan_edukasi_visual():
                 <div class="bungkus-judul-panel">
                     <div class="teks-atas">Edukasi Visual</div>
                     <h2 class="judul-panel huruf-judul">Contoh tampilan visual kualitas udara</h2>
-                    <p class="teks-panel">
-                        Halaman ini menampilkan contoh foto kondisi udara baik, sedang, dan kurang sehat.
-                        Foto digunakan sebagai ilustrasi edukasi agar pengguna lebih mudah memahami gambaran visual lingkungan.
-                    </p>
                 </div>
             </div>
             <div class="catatan-bawah">
